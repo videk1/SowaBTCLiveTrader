@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SowaBTCLiveTrader.Models;
@@ -20,12 +21,15 @@ namespace SowaBTCLiveTrader.WebSockets.BitstampWebSocket
     {
         private readonly IOrderBookService _orderBookService;
         private readonly IHubContext<BtcHub> _hub;
-        private readonly ILogger _logger;
+        private readonly IWebHostEnvironment _hostEnv;
         private static readonly string Connection = "wss://ws.bitstamp.net/";
 
-        public BitstampBackgroundWebSocket(ILogger<BitstampBackgroundWebSocket> logger, IOrderBookService orderBookService, IHubContext<BtcHub> hub)
+        public BitstampBackgroundWebSocket(
+             IWebHostEnvironment hostEnv, 
+             IOrderBookService orderBookService, 
+             IHubContext<BtcHub> hub)
         {
-            _logger = logger;
+            _hostEnv = hostEnv;
             _orderBookService = orderBookService;
             _hub = hub;
         }
@@ -74,10 +78,13 @@ namespace SowaBTCLiveTrader.WebSockets.BitstampWebSocket
                         var deserializedData = JsonSerializer.Deserialize<BitstampOrderBook>(data);
                         var orderBookDto = _orderBookService.CalculateAndReturnOrderBookData(deserializedData);
 
-                        // Log some data
-                        var logData = orderBookDto.ToString();
-                        _logger.LogInformation(logData);
+                        // Log every OrderBook to new audit file
+                        using (var sw = File.CreateText($"{_hostEnv.ContentRootPath}/AuditLog/{DateTime.Now.Ticks}_BTCOrderBook.audit"))
+                        {
+                            await sw.WriteAsync(orderBookDto.ToString());
+                        }
 
+                        // Sends the data to the hub so our client can display a correct chart
                         await _hub.Clients.All.SendAsync("sendbtcdata", JsonSerializer.Serialize(orderBookDto));
                     }
                 }
