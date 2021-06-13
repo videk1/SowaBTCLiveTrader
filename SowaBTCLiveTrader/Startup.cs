@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SowaBTCLiveTrader.Services.OrderBookService;
+using SowaBTCLiveTrader.WebSockets.BitstampWebSocket;
+using SowaBTCLiveTrader.WebSockets.BtcSignalRHub;
 
 namespace SowaBTCLiveTrader
 {
@@ -26,6 +29,20 @@ namespace SowaBTCLiveTrader
             {
                 configuration.RootPath = "ClientApp/dist";
             });
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy", builder => builder
+                .WithOrigins("http://localhost")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
+            });
+
+            services.AddSingleton<IOrderBookService, OrderBookService>();
+            services.AddHostedService<BitstampBackgroundWebSocket>();
+
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,8 +68,13 @@ namespace SowaBTCLiveTrader
 
             app.UseRouting();
 
+            app.UseCors("CorsPolicy");
+
+            app.UseWebSockets();
+
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<BtcHub>("/btchub");
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
