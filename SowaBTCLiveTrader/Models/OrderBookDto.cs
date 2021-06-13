@@ -13,7 +13,9 @@ namespace SowaBTCLiveTrader.Models
 
         public override string ToString()
         {
-            return "Timestamp: " + DateTime.Now + " Max. Bitcons to buy: " + maxBtcToBuy + " Asks length: " + asks.Count + " Bids length: " + bids.Count;
+            var asksToString = asks.Select(x => "Price: " + x[0] + " | Amount: " + x[1]);
+            var bidsToString = bids.Select(x => "Price: " + x[0] + " | Amount: " + x[1]);
+            return "Max. Bitcons to buy: " + maxBtcToBuy + " Asks: " + string.Join(", ", asksToString) + " Bids: " + string.Join(", ", bidsToString);
         }
     }
 }
