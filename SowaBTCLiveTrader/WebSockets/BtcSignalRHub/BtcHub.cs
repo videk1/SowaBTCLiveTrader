@@ -8,11 +8,6 @@ namespace SowaBTCLiveTrader.WebSockets.BtcSignalRHub
 {
     public class BtcHub : Hub
     {
-        public Task SendMessage(string user, string message)
-        {
-            return Clients.All.SendAsync("ReceiveMessage", user, message);
-        }
-
         #region OnConnectedAsync
         public override async Task OnConnectedAsync()
         {
