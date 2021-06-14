@@ -52,10 +52,12 @@ export class HomeComponent implements OnInit {
         if (element[1] === this.buyAmount) {
           // In this case we entered amount that is the same as the searched element, so we can just calculate price with this element.
           this.totalPriceForBuyAmount = element[0] * this.buyAmount;
+          break;
         } else {
           if (index === 0) {
             // In this case buyAmount is smaller than first value in asks array so we can just use first price in array.
             this.totalPriceForBuyAmount = element[0] * this.buyAmount;
+            break;
           } else {
             // We need to save element from before, because user will buy all of those coins
             var previousElement = this.asks[index - 1];
@@ -66,6 +68,7 @@ export class HomeComponent implements OnInit {
             // We must add the remaining price to previous.
             tpmPrice += amountLeft * element[0];
             this.totalPriceForBuyAmount = tpmPrice;
+            break;
           }
         }
       }
