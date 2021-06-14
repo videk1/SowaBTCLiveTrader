@@ -76,16 +76,23 @@ namespace SowaBTCLiveTrader.WebSockets.BitstampWebSocket
                     {
                         var data = await reader.ReadToEndAsync();
                         var deserializedData = JsonSerializer.Deserialize<BitstampOrderBook>(data);
-                        var orderBookDto = _orderBookService.CalculateAndReturnOrderBookData(deserializedData);
-
-                        // Log every OrderBook to new audit file
-                        using (var sw = File.CreateText($"{_hostEnv.ContentRootPath}/AuditLog/{DateTime.Now.Ticks}_BTCOrderBook.audit"))
+                        if (deserializedData.data.asks != null && 
+                            deserializedData.data.asks.Count > 0 && 
+                            deserializedData.data.bids != null && 
+                            deserializedData.data.bids.Count > 0)
                         {
-                            await sw.WriteAsync(orderBookDto.ToString());
-                        }
+                            var orderBookDto = _orderBookService.CalculateAndReturnOrderBookData(deserializedData);
 
-                        // Sends the data to the hub so our client can display a correct chart
-                        await _hub.Clients.All.SendAsync("sendbtcdata", JsonSerializer.Serialize(orderBookDto));
+                            // Log every OrderBook to new audit file
+                            using (var sw = File.CreateText($"{_hostEnv.ContentRootPath}/AuditLog/{DateTime.Now.Ticks}_BTCOrderBook.audit"))
+                            {
+                                await sw.WriteAsync(orderBookDto.ToString());
+                            }
+
+                            // Sends the data to the hub so our client can display a correct chart
+                            await _hub.Clients.All.SendAsync("sendbtcdata", JsonSerializer.Serialize(orderBookDto));
+
+                        }
                     }
                 }
             };
