@@ -19,7 +19,7 @@
       style="margin-bottom: 1rem"
     />
     <p>
-      Total price: <b> {{ totalPriceForBuyAmount }}</b>
+      Total price: <b> {{ totalPriceForBuyAmount | number }} EUR</b>
     </p>
     <p *ngIf="errorText">
       <i>{{ errorText }}</i>
